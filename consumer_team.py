@@ -1,0 +1,55 @@
+"""
+Copyright (c) 2026 DataSurface Inc. All Rights Reserved.
+Proprietary Software - See LICENSE.txt for terms.
+"""
+
+from datasurface.dsl import (
+    GovernanceZone, Team, DatasetGroup, DatasetSink, Workspace,
+    DataPlatformManagedDataContainer, WorkspacePlatformConfig,
+    ConsumerRetentionRequirements, DataMilestoningStrategy, DataLatency
+)
+from datasurface.documentation import PlainTextDocumentation
+
+
+def createConsumerTeam(gz: GovernanceZone) -> None:
+    team: Team = gz.getTeamOrThrow("consumerTeam")
+    team.add(
+        Workspace(
+            "ConsumerPostgres",
+            DataPlatformManagedDataContainer("ConsumerPostgres container"),
+            PlainTextDocumentation("Workspace consuming Postgres customer datasets via snapshot ingestion"),
+            DatasetGroup(
+                "SCD2_DSG",
+                sinks=[
+                    DatasetSink("CustomerDB", "customers"),
+                    DatasetSink("CustomerDB", "addresses")
+                ],
+                platform_chooser=WorkspacePlatformConfig(
+                    hist=ConsumerRetentionRequirements(
+                        r=DataMilestoningStrategy.SCD2,
+                        latency=DataLatency.MINUTES,
+                        regulator=None
+                    )
+                )
+            )
+        ),
+        Workspace(
+            "ConsumerCDC",
+            DataPlatformManagedDataContainer("ConsumerCDC container"),
+            PlainTextDocumentation("Workspace consuming SQL Server customer datasets"),
+            DatasetGroup(
+                "SCD2_DSG",
+                sinks=[
+                    DatasetSink("CustomerDB_SQLServer", "customers"),
+                    DatasetSink("CustomerDB_SQLServer", "addresses")
+                ],
+                platform_chooser=WorkspacePlatformConfig(
+                    hist=ConsumerRetentionRequirements(
+                        r=DataMilestoningStrategy.SCD2,
+                        latency=DataLatency.MINUTES,
+                        regulator=None
+                    )
+                )
+            )
+        )
+    )
