@@ -20,7 +20,7 @@ def createEcosystem() -> Ecosystem:
     """Azure nightly test ecosystem with PostgreSQL snapshot + SQL Server CDC ingestion."""
 
     git: Credential = Credential("git", CredentialType.API_TOKEN)
-    eRepo: GitHubRepository = GitHubRepository(f"{GIT_REPO_OWNER}/{GIT_REPO_NAME}", "main", credential=git)
+    eRepo: GitHubRepository = GitHubRepository(f"{GIT_REPO_OWNER}/{GIT_REPO_NAME}", "main_edit", credential=git)
 
     ecosys: Ecosystem = Ecosystem(
         name="Demo",
