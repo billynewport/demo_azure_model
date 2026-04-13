@@ -5,7 +5,8 @@ Proprietary Software - See LICENSE.txt for terms.
 
 from datasurface.dsl import GovernanceZone, Team, EnvironmentMap, Datastore, Dataset
 from datasurface.schema import DDLTable, DDLColumn, NullableStatus, PrimaryKeyStatus
-from datasurface.containers import SQLSnapshotIngestion, HostPortPair, PostgresDatabase
+from datasurface.containers import SQLSnapshotIngestion, SQLCDCIngestion
+from datasurface.containers import HostPortPair, PostgresDatabase
 from datasurface.dsl import EnvRefDataContainer, IngestionConsistencyType, ProductionStatus
 from datasurface.md.db.sqlserver import SQLServerDatabase
 from datasurface.triggers import CronTrigger
@@ -82,9 +83,9 @@ def createProducerTeam(gz: GovernanceZone) -> None:
         Datastore(
             "CustomerDB_SQLServer",
             documentation=PlainTextDocumentation("SQL Server customer datastore ingested via SQLCDC"),
-            capture_metadata=SQLSnapshotIngestion(
+            capture_metadata=SQLCDCIngestion(
                 EnvRefDataContainer("customer_db_sqlserver"),
-                CronTrigger("Every 2 minute", "*/2 * * * *"),
+                CronTrigger("Every 1 minute", "*/1 * * * *"),
                 IngestionConsistencyType.MULTI_DATASET,
                 Credential("customer-sqlserver-source-credential", CredentialType.USER_PASSWORD),
             ),
