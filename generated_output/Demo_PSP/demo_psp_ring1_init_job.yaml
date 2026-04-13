@@ -8,7 +8,7 @@ spec:
     spec:
       containers:
       - name: ring1-init
-        image: registry.gitlab.com/datasurface-inc/datasurface/datasurface:v1.3.2
+        image: registry.gitlab.com/datasurface-inc/datasurface/datasurface:v1.3.5
         command: ["/bin/bash"]
         args:
           - -c

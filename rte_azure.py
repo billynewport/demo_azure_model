@@ -27,7 +27,7 @@ MERGE_DBNAME: str = "merge_db"
 AIRFLOW_HOST: str = "ds-nightly-test-pgflex.postgres.database.azure.com"
 AIRFLOW_PORT: int = 5432
 AIRFLOW_SERVICE_ACCOUNT: str = "airflow-worker"
-DATASURFACE_VERSION: str = "1.3.2"
+DATASURFACE_VERSION: str = "1.3.5"
 
 
 def createDemoPSP() -> YellowPlatformServiceProvider:

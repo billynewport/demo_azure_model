@@ -113,7 +113,7 @@ spec:
     spec:
       containers:
         - name: mcp-server
-          image: registry.gitlab.com/datasurface-inc/datasurface/datasurface:v1.3.2
+          image: registry.gitlab.com/datasurface-inc/datasurface/datasurface:v1.3.5
           command: ["python", "-m", "datasurface.mcp"]
           args:
             - "--git-repo-path"
