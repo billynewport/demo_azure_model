@@ -1012,7 +1012,13 @@ def build_common_env_vars(platform_config: PlatformConfig):
     if platform_config.get('event_publish_credential_secret_name'):
         base.extend(build_env_vars_for_credential(
             platform_config['event_publish_credential_secret_name'],
-            platform_config.get('event_publish_credential_secret_type', 'USER_PASSWORD')
+            platform_config['event_publish_credential_secret_type']
+        ))
+    # Bulk object storage writer credential (for Parquet-on-S3 bulk staging)
+    if platform_config.get('bulk_object_storage_credential_secret_name'):
+        base.extend(build_env_vars_for_credential(
+            platform_config['bulk_object_storage_credential_secret_name'],
+            platform_config['bulk_object_storage_credential_secret_type']
         ))
     # OpenTelemetry OTLP configuration
     base.extend(build_otlp_env_vars(platform_config))
@@ -1026,7 +1032,7 @@ def maybe_add_source_db_env(env_vars, platform_config: PlatformConfig, stream_co
         stream_config['source_credential_secret_name'] != platform_config['merge_db_credential_secret_name']):
         env_vars.extend(build_env_vars_for_credential(
             stream_config['source_credential_secret_name'],
-            stream_config.get('source_credential_secret_type', 'USER_PASSWORD')
+            stream_config['source_credential_secret_type']
         ))
 
 
@@ -1800,7 +1806,7 @@ def create_datatransformer_execution_dag(platform_config: PlatformConfig, dt_con
         raise ValueError(f"DataTransformer configuration for workspace {dt_config['workspace_name']} is missing required dt_credential_secret_name")
     
     dt_env_base = dt_config['dt_credential_secret_name']
-    dt_type = dt_config.get('dt_credential_secret_type')
+    dt_type = dt_config['dt_credential_secret_type']
     dt_only_env_vars.extend(build_env_vars_for_credential(dt_env_base, dt_type))
 
     # If DataTransformer uses a different git credential, add that TOKEN only to the transformer env
@@ -1809,7 +1815,7 @@ def create_datatransformer_execution_dag(platform_config: PlatformConfig, dt_con
         dt_config['git_credential_secret_name'] != platform_config['git_credential_secret_name']):
         transformer_extra_git_env.extend(build_env_vars_for_credential(
             dt_config['git_credential_secret_name'],
-            dt_config.get('git_credential_secret_type', 'API_TOKEN')
+            dt_config['git_credential_secret_type']
         ))
 
     # Optional: extra credentials for DataTransformer pods (typed entries: [name, type])
@@ -1836,7 +1842,15 @@ def create_datatransformer_execution_dag(platform_config: PlatformConfig, dt_con
     if platform_config.get('event_publish_credential_secret_name'):
         event_publish_env_vars.extend(build_env_vars_for_credential(
             platform_config['event_publish_credential_secret_name'],
-            platform_config.get('event_publish_credential_secret_type', 'USER_PASSWORD')
+            platform_config['event_publish_credential_secret_type']
+        ))
+
+    # Bulk object storage writer credential env vars (for Parquet-on-S3 bulk staging)
+    bulk_object_storage_env_vars = []
+    if platform_config.get('bulk_object_storage_credential_secret_name'):
+        bulk_object_storage_env_vars.extend(build_env_vars_for_credential(
+            platform_config['bulk_object_storage_credential_secret_name'],
+            platform_config['bulk_object_storage_credential_secret_type']
         ))
 
     def dedupe_env_vars(*env_var_lists):
@@ -1850,7 +1864,7 @@ def create_datatransformer_execution_dag(platform_config: PlatformConfig, dt_con
     # Final env var sets - deduplicated
     infra_env_vars = dedupe_env_vars(base_env_vars, merge_env_vars, event_publish_env_vars)
     datatransformer_env_vars = dedupe_env_vars(base_env_vars, merge_env_vars, transformer_extra_git_env, dt_only_env_vars, dt_extra_env_vars, event_publish_env_vars)
-    output_ingestion_env_vars = dedupe_env_vars(base_env_vars, merge_env_vars, transformer_extra_git_env, dt_only_env_vars, crg_env_vars, event_publish_env_vars)
+    output_ingestion_env_vars = dedupe_env_vars(base_env_vars, merge_env_vars, transformer_extra_git_env, dt_only_env_vars, crg_env_vars, event_publish_env_vars, bulk_object_storage_env_vars)
 
     # Start task
     start_task = EmptyOperator(
@@ -2253,7 +2267,7 @@ def create_dc_reconcile_dag(config: dict) -> DAG:
     if config.get('event_publish_credential_secret_name'):
         env_vars.extend(build_env_vars_for_credential(
             config['event_publish_credential_secret_name'],
-            config.get('event_publish_credential_secret_type', 'USER_PASSWORD')
+            config['event_publish_credential_secret_type']
         ))
 
     # Git cache mounts
@@ -2349,7 +2363,7 @@ def create_cqrs_execution_dag(config: dict) -> DAG:
     if config.get('event_publish_credential_secret_name'):
         env_vars.extend(build_env_vars_for_credential(
             config['event_publish_credential_secret_name'],
-            config.get('event_publish_credential_secret_type', 'USER_PASSWORD')
+            config['event_publish_credential_secret_type']
         ))
     
     # Git cache mounts
