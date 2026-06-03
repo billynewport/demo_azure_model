@@ -2,7 +2,7 @@
 Copyright (c) 2026 DataSurface Inc. All Rights Reserved.
 Proprietary Software - See LICENSE.txt for terms.
 
-Azure AKS nightly test ecosystem.
+Azure AKS concurrent-ingestion scale ecosystem.
 """
 
 from datasurface.dsl import InfrastructureVendor, InfrastructureLocation, Ecosystem, CloudVendor, RuntimeDeclaration, GovernanceZoneDeclaration
@@ -17,7 +17,7 @@ GIT_REPO_NAME: str = "demo_azure_model"
 
 
 def createEcosystem() -> Ecosystem:
-    """Azure nightly test ecosystem with PostgreSQL snapshot + SQL Server CDC ingestion."""
+    """Azure scale ecosystem with many Azure SQL CDC ingestion streams."""
 
     git: Credential = Credential("git", CredentialType.API_TOKEN)
     eRepo: GitHubRepository = GitHubRepository(f"{GIT_REPO_OWNER}/{GIT_REPO_NAME}", "main_edit", credential=git)
@@ -30,14 +30,14 @@ def createEcosystem() -> Ecosystem:
         ],
         infrastructure_vendors=[
             InfrastructureVendor(
-                name="MyCorp",
-                cloud_vendor=CloudVendor.PRIVATE,
-                documentation=PlainTextDocumentation("Private company data centers"),
+                name="Azure",
+                cloud_vendor=CloudVendor.AZURE,
+                documentation=PlainTextDocumentation("Microsoft Azure"),
                 locations=[
                     InfrastructureLocation(
                         name="USA",
                         locations=[
-                            InfrastructureLocation(name="NY_1")
+                            InfrastructureLocation(name="WestUS2")
                         ]
                     )
                 ]

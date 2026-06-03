@@ -1,24 +1,11 @@
 [
   {
     "dsgName": "SCD2_DSG",
-    "workspace": "ConsumerPostgres",
+    "workspace": "AzureScaleConsumer",
     "assignments": [
       {
         "dataPlatform": "SCD2",
-        "documentation": "Assign ConsumerPostgres SCD2_DSG to SCD2 DataPlatform",
-        "productionStatus": "NOT_PRODUCTION",
-        "deprecationsAllowed": "NEVER",
-        "status": "PROVISIONING"
-      }
-    ]
-  },
-  {
-    "dsgName": "SCD2_DSG",
-    "workspace": "ConsumerCDC",
-    "assignments": [
-      {
-        "dataPlatform": "SCD2",
-        "documentation": "Assign ConsumerCDC SCD2_DSG to SCD2 DataPlatform",
+        "documentation": "Assign AzureScaleConsumer SCD2_DSG to SCD2 DataPlatform",
         "productionStatus": "NOT_PRODUCTION",
         "deprecationsAllowed": "NEVER",
         "status": "PROVISIONING"
