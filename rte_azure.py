@@ -65,7 +65,7 @@ AIRFLOW_SERVICE_ACCOUNT: str = "airflow-worker"
 DATASURFACE_VERSION: str = "1.4.27"
 CRG_NAME: str = "AzureHyperscaleCQRS"
 CQRS_CONTAINER_NAME: str = "AzureHyperscale_CQRS_DB"
-CQRS_MAX_WORKERS: int = 4
+CQRS_MAX_WORKERS: int = 8
 
 
 def _location() -> LocationKey:
