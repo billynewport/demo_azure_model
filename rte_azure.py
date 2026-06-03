@@ -11,6 +11,7 @@ from datasurface.containers import AzureObjectContainer, AzureSQLHyperscaleDatab
 from datasurface.documentation import PlainTextDocumentation
 from datasurface.dsl import (
     ConsumerReplicaGroup,
+    CQRSRuntimeHint,
     DataMilestoningStrategy,
     Ecosystem,
     PSPDeclaration,
@@ -64,6 +65,7 @@ AIRFLOW_SERVICE_ACCOUNT: str = "airflow-worker"
 DATASURFACE_VERSION: str = "1.4.27"
 CRG_NAME: str = "AzureHyperscaleCQRS"
 CQRS_CONTAINER_NAME: str = "AzureHyperscale_CQRS_DB"
+CQRS_MAX_WORKERS: int = 4
 
 
 def _location() -> LocationKey:
@@ -156,7 +158,13 @@ def createDemoPSP() -> YellowPlatformServiceProvider:
         pv_storage_class="azurefile-csi-nfs",
         datasurfaceDockerImage=f"registry.gitlab.com/datasurface-inc/datasurface/datasurface:v{DATASURFACE_VERSION}",
         bulkObjectStorage=_azure_bulk_binding(),
-        hints=_ingestion_hints(),
+        hints=_ingestion_hints() + [
+            CQRSRuntimeHint(
+                CRG_NAME,
+                dcName=CQRS_CONTAINER_NAME,
+                kv={"maxWorkers": CQRS_MAX_WORKERS},
+            )
+        ],
         consumerReplicaGroups=[
             ConsumerReplicaGroup(
                 name=CRG_NAME,
