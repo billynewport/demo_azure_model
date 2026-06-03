@@ -132,7 +132,8 @@ def createDemoPSP() -> YellowPlatformServiceProvider:
     git_config = GitCacheConfig(
         enabled=True,
         access_mode="ReadWriteMany",
-        storageClass="azurefile-csi",
+        storage_size=StorageRequirement("100G"),
+        storageClass="azurefile-csi-nfs",
     )
 
     yp_assembly = YellowAzureExternalAirflow3AndMergeDatabase(
@@ -151,7 +152,7 @@ def createDemoPSP() -> YellowPlatformServiceProvider:
         mergeRW_Credential=Credential("sqlserver-demo-merge", CredentialType.USER_PASSWORD),
         yp_assembly=yp_assembly,
         merge_datacontainer=merge_datacontainer,
-        pv_storage_class="azurefile-csi",
+        pv_storage_class="azurefile-csi-nfs",
         datasurfaceDockerImage=f"registry.gitlab.com/datasurface-inc/datasurface/datasurface:v{DATASURFACE_VERSION}",
         bulkObjectStorage=_azure_bulk_binding(),
         hints=_ingestion_hints(),
