@@ -61,7 +61,7 @@ KUB_NAME_SPACE: str = "ds-scale"
 AIRFLOW_HOST: str = AZURE_AIRFLOW_POSTGRES_HOST
 AIRFLOW_PORT: int = AZURE_AIRFLOW_POSTGRES_PORT
 AIRFLOW_SERVICE_ACCOUNT: str = "airflow-worker"
-DATASURFACE_VERSION: str = "1.4.26"
+DATASURFACE_VERSION: str = "1.4.27"
 CRG_NAME: str = "AzureHyperscaleCQRS"
 CQRS_CONTAINER_NAME: str = "AzureHyperscale_CQRS_DB"
 
@@ -142,6 +142,7 @@ def createDemoPSP() -> YellowPlatformServiceProvider:
         git_cache_config=git_config,
         afHostPortPair=HostPortPair(AIRFLOW_HOST, AIRFLOW_PORT),
         airflowServiceAccount=AIRFLOW_SERVICE_ACCOUNT,
+        externalSecretProvider=None,
     )
 
     return YellowPlatformServiceProvider(
