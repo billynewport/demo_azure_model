@@ -69,7 +69,7 @@ CQRS_MAX_WORKERS: int = 32
 CQRS_REMOTE_FORENSIC_MAX_COALESCE_RANGE: int = 200
 CQRS_REQUEST_CPU: float = 6.0
 CQRS_LIMIT_CPU: float = 6.0
-CQRS_MEMORY: str = "2G"
+CQRS_MEMORY: str = "4G"
 
 
 def _location() -> LocationKey:
