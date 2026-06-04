@@ -65,7 +65,7 @@ AIRFLOW_SERVICE_ACCOUNT: str = "airflow-worker"
 DATASURFACE_VERSION: str = "1.4.31"
 CRG_NAME: str = "AzureHyperscaleCQRS"
 CQRS_CONTAINER_NAME: str = "AzureHyperscale_CQRS_DB"
-CQRS_MAX_WORKERS: int = 32
+CQRS_MAX_WORKERS: int = 20
 CQRS_REMOTE_FORENSIC_MAX_COALESCE_RANGE: int = 200
 CQRS_REQUEST_CPU: float = 6.0
 CQRS_LIMIT_CPU: float = 6.0
@@ -109,7 +109,7 @@ def _ingestion_hints() -> list[K8sIngestionHint]:
                         "bulkStagingMinRows": 1,
                         "bulkUploadMaxSinglePutMiB": 4,
                         "bulkUploadChunkMiB": 4,
-                        "bulkUploadMaxConcurrency": 4,
+                        "bulkUploadMaxConcurrency": 2,
                     },
                 )
             )
