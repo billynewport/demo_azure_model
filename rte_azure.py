@@ -25,13 +25,13 @@ from datasurface.triggers import CronTrigger
 from datasurface.yellow import (
     BulkObjectStorageBinding,
     GitCacheConfig,
-    K8sCQRSHint,
     K8sIngestionHint,
     K8sResourceLimits,
     YellowAzureExternalAirflow3AndMergeDatabase,
     YellowDataPlatform,
     YellowPlatformServiceProvider,
 )
+from datasurface.platforms.yellow import K8sCQRSHint
 
 from db_constants import (
     AZURE_AIRFLOW_POSTGRES_HOST,
