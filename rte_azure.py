@@ -11,7 +11,6 @@ from datasurface.containers import AzureObjectContainer, AzureSQLHyperscaleDatab
 from datasurface.documentation import PlainTextDocumentation
 from datasurface.dsl import (
     ConsumerReplicaGroup,
-    CQRSRuntimeHint,
     DataMilestoningStrategy,
     Ecosystem,
     PSPDeclaration,
@@ -26,6 +25,7 @@ from datasurface.triggers import CronTrigger
 from datasurface.yellow import (
     BulkObjectStorageBinding,
     GitCacheConfig,
+    K8sCQRSHint,
     K8sIngestionHint,
     K8sResourceLimits,
     YellowAzureExternalAirflow3AndMergeDatabase,
@@ -66,6 +66,9 @@ DATASURFACE_VERSION: str = "1.4.28"
 CRG_NAME: str = "AzureHyperscaleCQRS"
 CQRS_CONTAINER_NAME: str = "AzureHyperscale_CQRS_DB"
 CQRS_MAX_WORKERS: int = 8
+CQRS_REQUEST_CPU: float = 2.0
+CQRS_LIMIT_CPU: float = 4.0
+CQRS_MEMORY: str = "4G"
 
 
 def _location() -> LocationKey:
@@ -110,6 +113,20 @@ def _ingestion_hints() -> list[K8sIngestionHint]:
                 )
             )
     return hints
+
+
+def _cqrs_hint() -> K8sCQRSHint:
+    return K8sCQRSHint(
+        CRG_NAME,
+        K8sResourceLimits(
+            StorageRequirement(CQRS_MEMORY),
+            StorageRequirement(CQRS_MEMORY),
+            CQRS_REQUEST_CPU,
+            CQRS_LIMIT_CPU,
+        ),
+        dcName=CQRS_CONTAINER_NAME,
+        kv={"maxWorkers": CQRS_MAX_WORKERS},
+    )
 
 
 def createDemoPSP() -> YellowPlatformServiceProvider:
@@ -158,13 +175,7 @@ def createDemoPSP() -> YellowPlatformServiceProvider:
         pv_storage_class="azurefile-csi-nfs",
         datasurfaceDockerImage=f"registry.gitlab.com/datasurface-inc/datasurface/datasurface:v{DATASURFACE_VERSION}",
         bulkObjectStorage=_azure_bulk_binding(),
-        hints=_ingestion_hints() + [
-            CQRSRuntimeHint(
-                CRG_NAME,
-                dcName=CQRS_CONTAINER_NAME,
-                kv={"maxWorkers": CQRS_MAX_WORKERS},
-            )
-        ],
+        hints=_ingestion_hints() + [_cqrs_hint()],
         consumerReplicaGroups=[
             ConsumerReplicaGroup(
                 name=CRG_NAME,
