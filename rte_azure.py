@@ -124,7 +124,6 @@ def _cqrs_hint() -> K8sCQRSHint:
             CQRS_REQUEST_CPU,
             CQRS_LIMIT_CPU,
         ),
-        dcName=CQRS_CONTAINER_NAME,
         kv={"maxWorkers": CQRS_MAX_WORKERS},
     )
 
