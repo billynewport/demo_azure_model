@@ -66,9 +66,9 @@ DATASURFACE_VERSION: str = "1.4.29"
 CRG_NAME: str = "AzureHyperscaleCQRS"
 CQRS_CONTAINER_NAME: str = "AzureHyperscale_CQRS_DB"
 CQRS_MAX_WORKERS: int = 8
-CQRS_REQUEST_CPU: float = 2.0
-CQRS_LIMIT_CPU: float = 4.0
-CQRS_MEMORY: str = "4G"
+CQRS_REQUEST_CPU: float = 1.0
+CQRS_LIMIT_CPU: float = 2.0
+CQRS_MEMORY: str = "2G"
 
 
 def _location() -> LocationKey:
