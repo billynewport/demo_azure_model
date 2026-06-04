@@ -65,7 +65,7 @@ AIRFLOW_SERVICE_ACCOUNT: str = "airflow-worker"
 DATASURFACE_VERSION: str = "1.4.31"
 CRG_NAME: str = "AzureHyperscaleCQRS"
 CQRS_CONTAINER_NAME: str = "AzureHyperscale_CQRS_DB"
-CQRS_MAX_WORKERS: int = 16
+CQRS_MAX_WORKERS: int = 32
 CQRS_REMOTE_FORENSIC_MAX_COALESCE_RANGE: int = 200
 CQRS_REQUEST_CPU: float = 6.0
 CQRS_LIMIT_CPU: float = 6.0
@@ -184,7 +184,7 @@ def createDemoPSP() -> YellowPlatformServiceProvider:
                 name=CRG_NAME,
                 dataContainers={cqrs_datacontainer},
                 workspaceNames={CONSUMER_WORKSPACE_NAME},
-                trigger=CronTrigger("Every 2 minutes", "*/2 * * * *"),
+                trigger=CronTrigger("Every 10 minutes", "*/10 * * * *"),
                 credential=Credential("sqlserver-cqrs", CredentialType.USER_PASSWORD),
                 bulkObjectStorages={CQRS_CONTAINER_NAME: _azure_bulk_binding()},
             )
