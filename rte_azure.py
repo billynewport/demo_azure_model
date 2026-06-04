@@ -67,8 +67,8 @@ CRG_NAME: str = "AzureHyperscaleCQRS"
 CQRS_CONTAINER_NAME: str = "AzureHyperscale_CQRS_DB"
 CQRS_MAX_WORKERS: int = 8
 CQRS_REMOTE_FORENSIC_MAX_COALESCE_RANGE: int = 200
-CQRS_REQUEST_CPU: float = 1.0
-CQRS_LIMIT_CPU: float = 2.0
+CQRS_REQUEST_CPU: float = 6.0
+CQRS_LIMIT_CPU: float = 6.0
 CQRS_MEMORY: str = "2G"
 
 
