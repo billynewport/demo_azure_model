@@ -69,7 +69,9 @@ CQRS_MAX_WORKERS: int = 20
 CQRS_REMOTE_FORENSIC_MAX_COALESCE_RANGE: int = 200
 CQRS_REQUEST_CPU: float = 6.0
 CQRS_LIMIT_CPU: float = 6.0
-CQRS_MEMORY: str = "4G"
+CQRS_MEMORY: str = "16G"
+CQRS_STAGING_CHUNK_SIZE: int = 500000
+CQRS_BULK_STAGING_ROWS_PER_PART: int = 250000
 
 
 def _location() -> LocationKey:
@@ -128,6 +130,9 @@ def _cqrs_hint() -> K8sCQRSHint:
         kv={
             "maxWorkers": CQRS_MAX_WORKERS,
             "remoteForensicMaxCoalesceRange": CQRS_REMOTE_FORENSIC_MAX_COALESCE_RANGE,
+            "stagingChunkSize": CQRS_STAGING_CHUNK_SIZE,
+            "bulkStagingMode": "force",
+            "bulkStagingRowsPerPart": CQRS_BULK_STAGING_ROWS_PER_PART,
         },
     )
 
