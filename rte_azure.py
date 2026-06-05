@@ -67,9 +67,10 @@ CRG_NAME: str = "AzureHyperscaleCQRS"
 CQRS_CONTAINER_NAME: str = "AzureHyperscale_CQRS_DB"
 CQRS_MAX_WORKERS: int = 8
 CQRS_REMOTE_FORENSIC_MAX_COALESCE_RANGE: int = 200
-CQRS_REQUEST_CPU: float = 1.0
+CQRS_REQUEST_CPU: float = 0.25
 CQRS_LIMIT_CPU: float = 1.0
-CQRS_MEMORY: str = "4G"
+CQRS_REQUEST_MEMORY: str = "2G"
+CQRS_LIMIT_MEMORY: str = "4G"
 CQRS_STAGING_CHUNK_SIZE: int = 500000
 CQRS_BULK_STAGING_ROWS_PER_PART: int = 250000
 
@@ -117,8 +118,8 @@ def _cqrs_hint() -> K8sCQRSHint:
     return K8sCQRSHint(
         CRG_NAME,
         K8sResourceLimits(
-            StorageRequirement(CQRS_MEMORY),
-            StorageRequirement(CQRS_MEMORY),
+            StorageRequirement(CQRS_REQUEST_MEMORY),
+            StorageRequirement(CQRS_LIMIT_MEMORY),
             CQRS_REQUEST_CPU,
             CQRS_LIMIT_CPU,
         ),
