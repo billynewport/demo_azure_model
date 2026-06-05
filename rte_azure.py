@@ -62,7 +62,7 @@ KUB_NAME_SPACE: str = "ds-scale"
 AIRFLOW_HOST: str = AZURE_AIRFLOW_POSTGRES_HOST
 AIRFLOW_PORT: int = AZURE_AIRFLOW_POSTGRES_PORT
 AIRFLOW_SERVICE_ACCOUNT: str = "airflow-worker"
-DATASURFACE_VERSION: str = "1.4.34"
+DATASURFACE_VERSION: str = "1.4.35"
 CRG_NAME: str = "AzureHyperscaleCQRS"
 CQRS_CONTAINER_NAME: str = "AzureHyperscale_CQRS_DB"
 CQRS_MAX_WORKERS: int = 8
@@ -92,30 +92,25 @@ def _azure_bulk_binding() -> BulkObjectStorageBinding:
 
 
 def _ingestion_hints() -> list[K8sIngestionHint]:
-    hints: list[K8sIngestionHint] = []
     resources = K8sResourceLimits(
         StorageRequirement(INGESTION_REQUEST_MEMORY),
         StorageRequirement(INGESTION_LIMIT_MEMORY),
         INGESTION_REQUEST_CPU,
         INGESTION_LIMIT_CPU,
     )
-    for team_idx in range(1, NUM_TEAMS + 1):
-        for store_idx in range(1, NUM_STORES_PER_TEAM + 1):
-            hints.append(
-                K8sIngestionHint(
-                    f"CustomerDB_AzureSQL_T{team_idx}_{store_idx}",
-                    resources,
-                    kv={
-                        "bulkStagingMode": "force",
-                        "bulkStagingRowsPerPart": 50000,
-                        "bulkStagingMinRows": 1,
-                        "bulkUploadMaxSinglePutMiB": 4,
-                        "bulkUploadChunkMiB": 4,
-                        "bulkUploadMaxConcurrency": 2,
-                    },
-                )
-            )
-    return hints
+    return [
+        K8sIngestionHint(
+            resourceLimits=resources,
+            kv={
+                "bulkStagingMode": "force",
+                "bulkStagingRowsPerPart": 50000,
+                "bulkStagingMinRows": 1,
+                "bulkUploadMaxSinglePutMiB": 4,
+                "bulkUploadChunkMiB": 4,
+                "bulkUploadMaxConcurrency": 2,
+            },
+        )
+    ]
 
 
 def _cqrs_hint() -> K8sCQRSHint:

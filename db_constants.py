@@ -31,7 +31,7 @@ AZURE_BULK_DATA_SOURCE_NAME: str = "datasurface_bulk_ds"
 AZURE_BULK_WRITER_CREDENTIAL: str = "azure-bulk-writer"
 
 # Ingestion pod sizing for the Airflow/AKS concurrency test.
-INGESTION_REQUEST_MEMORY: str = "512M"
-INGESTION_LIMIT_MEMORY: str = "2G"
-INGESTION_REQUEST_CPU: float = 0.25
+INGESTION_REQUEST_MEMORY: str = "256M"
+INGESTION_LIMIT_MEMORY: str = "512M"
+INGESTION_REQUEST_CPU: float = 0.05
 INGESTION_LIMIT_CPU: float = 1.0
