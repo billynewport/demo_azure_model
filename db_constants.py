@@ -3,10 +3,10 @@ Copyright (c) 2026 DataSurface Inc. All Rights Reserved.
 Proprietary Software - See LICENSE.txt for terms.
 """
 
-# Model size. NUM_TEAMS=1 and NUM_STORES_PER_TEAM=250 creates 250 independent
+# Model size. NUM_TEAMS=1 and NUM_STORES_PER_TEAM=5 creates 5 independent
 # CDC ingestion streams over the same Azure SQL source tables.
 NUM_TEAMS: int = 1
-NUM_STORES_PER_TEAM: int = 250
+NUM_STORES_PER_TEAM: int = 5
 CONSUMER_WORKSPACE_NAME: str = "AzureScaleConsumer"
 
 # Provisioned Azure resource values for the AKS scale test.
