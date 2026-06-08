@@ -79,7 +79,7 @@ def createProducerTeam(gz: GovernanceZone) -> None:
                     productionStatus=ProductionStatus.NOT_PRODUCTION,
                     databaseName=AZURE_SOURCE_DBNAME,
                     trustServerCertificate=AZURE_SQL_TRUST_SERVER_CERTIFICATE,
-                    # 200 concurrent ingestion pods overwhelm the Azure SQL gateway login
+                    # High-concurrency ingestion pods overwhelm the Azure SQL gateway login
                     # handshake; the default 10s connect timeout expires (HYT00) before the
                     # gateway authenticates. Give logins headroom under burst.
                     dataContainerParams=DataContainerParams(loginTimeout=60),
