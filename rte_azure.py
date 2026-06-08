@@ -180,6 +180,11 @@ def createDemoPSP() -> YellowPlatformServiceProvider:
         datasurfaceDockerImage=f"registry.gitlab.com/datasurface-inc/datasurface/datasurface:v{DATASURFACE_VERSION}",
         bulkObjectStorage=_azure_bulk_binding(),
         hints=_ingestion_hints() + [_cqrs_hint()],
+        # OTLP telemetry -> node-local OTel Collector DaemonSet (hostPort 4318) ->
+        # AKS managed-metrics addon -> Azure Managed Prometheus -> Azure Managed Grafana.
+        otlpEnabled=True,
+        otlpPort=4318,
+        otlpProtocol="http/protobuf",
         consumerReplicaGroups=[
             ConsumerReplicaGroup(
                 name=CRG_NAME,
