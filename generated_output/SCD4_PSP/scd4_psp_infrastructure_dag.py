@@ -591,9 +591,9 @@ model_merge_env_vars.extend(secret_manager.getCredential(
 
 # OpenTelemetry OTLP configuration for node-local agent access
 model_merge_env_vars.extend(build_otlp_env_vars({
-    'otlp_enabled': False,
+    'otlp_enabled': True,
     'otlp_port': 4318,
-    
+    'otlp_protocol': 'http/protobuf',
 }))
 
 
@@ -602,7 +602,7 @@ merge_task = KubernetesPodOperator(
     task_id='infrastructure_merge_task',
     name='scd4-psp-infra-merge',
     namespace='ds-scale',
-    image='registry.gitlab.com/datasurface-inc/datasurface/datasurface:v1.4.42',
+    image='registry.gitlab.com/datasurface-inc/datasurface/datasurface:v1.4.43',
     cmds=['/bin/bash'],
     arguments=[
         '-c',

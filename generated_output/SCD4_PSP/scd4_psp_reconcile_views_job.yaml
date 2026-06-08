@@ -9,7 +9,7 @@ spec:
     spec:
       containers:
       - name: reconcile-views-handler
-        image: registry.gitlab.com/datasurface-inc/datasurface/datasurface:v1.4.42
+        image: registry.gitlab.com/datasurface-inc/datasurface/datasurface:v1.4.43
         command: ["/bin/bash"]
         args:
         - -c
