@@ -7,7 +7,7 @@ model. Replace the literal host/database/storage values after Azure resources
 are provisioned, then commit the updated model.
 """
 
-from datasurface.containers import AzureObjectContainer, AzureSQLHyperscaleDatabase, HostPortPair
+from datasurface.containers import AzureObjectContainer, AzureSQLHyperscaleDatabase, DataContainerParams, HostPortPair
 from datasurface.documentation import PlainTextDocumentation
 from datasurface.dsl import (
     ConsumerReplicaGroup,
@@ -141,6 +141,9 @@ def createDemoPSP() -> YellowPlatformServiceProvider:
         productionStatus=ProductionStatus.NOT_PRODUCTION,
         databaseName=AZURE_MERGE_DBNAME,
         trustServerCertificate=AZURE_SQL_TRUST_SERVER_CERTIFICATE,
+        # Headroom for the Azure SQL gateway login handshake under 200-way concurrency
+        # (default 10s connect timeout expires as HYT00 before auth completes).
+        dataContainerParams=DataContainerParams(loginTimeout=60),
     )
 
     cqrs_datacontainer = AzureSQLHyperscaleDatabase(
@@ -150,6 +153,7 @@ def createDemoPSP() -> YellowPlatformServiceProvider:
         productionStatus=ProductionStatus.NOT_PRODUCTION,
         databaseName=AZURE_CQRS_DBNAME,
         trustServerCertificate=AZURE_SQL_TRUST_SERVER_CERTIFICATE,
+        dataContainerParams=DataContainerParams(loginTimeout=60),
     )
 
     git_config = GitCacheConfig(

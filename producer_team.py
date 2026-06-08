@@ -3,7 +3,7 @@ Copyright (c) 2026 DataSurface Inc. All Rights Reserved.
 Proprietary Software - See LICENSE.txt for terms.
 """
 
-from datasurface.containers import AzureSQLDatabase, HostPortPair, SQLCDCIngestion
+from datasurface.containers import AzureSQLDatabase, DataContainerParams, HostPortPair, SQLCDCIngestion
 from datasurface.documentation import PlainTextDocumentation
 from datasurface.dsl import Datastore, Dataset, EnvRefDataContainer, EnvironmentMap, GovernanceZone, IngestionConsistencyType, ProductionStatus, Team
 from datasurface.keys import LocationKey
@@ -79,6 +79,10 @@ def createProducerTeam(gz: GovernanceZone) -> None:
                     productionStatus=ProductionStatus.NOT_PRODUCTION,
                     databaseName=AZURE_SOURCE_DBNAME,
                     trustServerCertificate=AZURE_SQL_TRUST_SERVER_CERTIFICATE,
+                    # 200 concurrent ingestion pods overwhelm the Azure SQL gateway login
+                    # handshake; the default 10s connect timeout expires (HYT00) before the
+                    # gateway authenticates. Give logins headroom under burst.
+                    dataContainerParams=DataContainerParams(loginTimeout=60),
                 )
             },
             dtReleaseSelectors=dict(),
