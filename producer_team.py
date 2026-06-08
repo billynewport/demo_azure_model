@@ -94,7 +94,7 @@ def createProducerTeam(gz: GovernanceZone) -> None:
                     documentation=PlainTextDocumentation("Azure SQL CDC scale-test datastore"),
                     capture_metadata=SQLCDCIngestion(
                         EnvRefDataContainer(SOURCE_CONTAINER_REF),
-                        CronTrigger("Every 10 minutes", "*/10 * * * *"),
+                        CronTrigger("Every 2 minutes", "*/2 * * * *"),
                         IngestionConsistencyType.MULTI_DATASET,
                         Credential("customer-sqlserver-source-credential", CredentialType.USER_PASSWORD),
                     ),
