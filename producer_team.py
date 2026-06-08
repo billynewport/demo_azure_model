@@ -11,7 +11,7 @@ from datasurface.policy import SimpleDC, SimpleDCTypes
 from datasurface.schema import DDLColumn, DDLTable, NullableStatus, PrimaryKeyStatus
 from datasurface.security import Credential, CredentialType
 from datasurface.triggers import CronTrigger
-from datasurface.types import Date, VarChar
+from datasurface.types import Date, NVarChar
 
 from db_constants import (
     AZURE_LOCATION_KEY,
@@ -37,14 +37,14 @@ def customer_datasets() -> list[Dataset]:
             "customers",
             schema=DDLTable(
                 columns=[
-                    DDLColumn("id", VarChar(20), nullable=NullableStatus.NOT_NULLABLE, primary_key=PrimaryKeyStatus.PK),
-                    DDLColumn("firstName", VarChar(100), nullable=NullableStatus.NOT_NULLABLE),
-                    DDLColumn("lastName", VarChar(100), nullable=NullableStatus.NOT_NULLABLE),
+                    DDLColumn("id", NVarChar(20), nullable=NullableStatus.NOT_NULLABLE, primary_key=PrimaryKeyStatus.PK),
+                    DDLColumn("firstName", NVarChar(100), nullable=NullableStatus.NOT_NULLABLE),
+                    DDLColumn("lastName", NVarChar(100), nullable=NullableStatus.NOT_NULLABLE),
                     DDLColumn("dob", Date(), nullable=NullableStatus.NOT_NULLABLE),
-                    DDLColumn("email", VarChar(100)),
-                    DDLColumn("phone", VarChar(100)),
-                    DDLColumn("primaryAddressId", VarChar(20)),
-                    DDLColumn("billingAddressId", VarChar(20)),
+                    DDLColumn("email", NVarChar(100)),
+                    DDLColumn("phone", NVarChar(100)),
+                    DDLColumn("primaryAddressId", NVarChar(20)),
+                    DDLColumn("billingAddressId", NVarChar(20)),
                 ]
             ),
             classifications=[SimpleDC(SimpleDCTypes.CPI, "Customer")],
@@ -53,12 +53,12 @@ def customer_datasets() -> list[Dataset]:
             "addresses",
             schema=DDLTable(
                 columns=[
-                    DDLColumn("id", VarChar(20), nullable=NullableStatus.NOT_NULLABLE, primary_key=PrimaryKeyStatus.PK),
-                    DDLColumn("customerId", VarChar(20), nullable=NullableStatus.NOT_NULLABLE),
-                    DDLColumn("streetName", VarChar(100), nullable=NullableStatus.NOT_NULLABLE),
-                    DDLColumn("city", VarChar(100), nullable=NullableStatus.NOT_NULLABLE),
-                    DDLColumn("state", VarChar(100), nullable=NullableStatus.NOT_NULLABLE),
-                    DDLColumn("zipCode", VarChar(30), nullable=NullableStatus.NOT_NULLABLE),
+                    DDLColumn("id", NVarChar(20), nullable=NullableStatus.NOT_NULLABLE, primary_key=PrimaryKeyStatus.PK),
+                    DDLColumn("customerId", NVarChar(20), nullable=NullableStatus.NOT_NULLABLE),
+                    DDLColumn("streetName", NVarChar(100), nullable=NullableStatus.NOT_NULLABLE),
+                    DDLColumn("city", NVarChar(100), nullable=NullableStatus.NOT_NULLABLE),
+                    DDLColumn("state", NVarChar(100), nullable=NullableStatus.NOT_NULLABLE),
+                    DDLColumn("zipCode", NVarChar(30), nullable=NullableStatus.NOT_NULLABLE),
                 ]
             ),
             classifications=[SimpleDC(SimpleDCTypes.CPI, "Address")],
