@@ -1,11 +1,11 @@
 [
   {
-    "dsgName": "SCD2_DSG",
+    "dsgName": "SCD4_DSG",
     "workspace": "AzureScaleConsumer",
     "assignments": [
       {
-        "dataPlatform": "SCD2",
-        "documentation": "Assign AzureScaleConsumer SCD2_DSG to SCD2 DataPlatform",
+        "dataPlatform": "SCD4",
+        "documentation": "Assign AzureScaleConsumer SCD4_DSG to SCD4 DataPlatform",
         "productionStatus": "NOT_PRODUCTION",
         "deprecationsAllowed": "NEVER",
         "status": "PROVISIONING"

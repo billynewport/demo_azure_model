@@ -2,14 +2,14 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: demo-psp-reconcile-views-job
-  namespace: ds-nightly
+  name: scd4-psp-reconcile-views-job
+  namespace: ds-scale
 spec:
   template:
     spec:
       containers:
       - name: reconcile-views-handler
-        image: registry.gitlab.com/datasurface-inc/datasurface/datasurface:v1.3.2
+        image: registry.gitlab.com/datasurface-inc/datasurface/datasurface:v1.4.39
         command: ["/bin/bash"]
         args:
         - -c
@@ -17,7 +17,7 @@ spec:
           echo "Starting DataSurface reconcile views handler"
 
           python -m datasurface.platforms.yellow.reconcile_workspace_views \
-            --psp Demo_PSP \
+            --psp SCD4_PSP \
             --git-repo-path /cache/git-cache \
             --git-repo-type github \
             --git-repo-url https://github.com \
@@ -58,6 +58,36 @@ spec:
           valueFrom:
             secretKeyRef:
               name: sqlserver-demo-merge
+              key: PASSWORD
+
+
+        - name: azure-bulk-writer_TYPE
+          value: "USER_PASSWORD"
+
+        - name: azure-bulk-writer_USER
+          valueFrom:
+            secretKeyRef:
+              name: azure-bulk-writer
+              key: USER
+        - name: azure-bulk-writer_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: azure-bulk-writer
+              key: PASSWORD
+
+
+        - name: sqlserver-cqrs_TYPE
+          value: "USER_PASSWORD"
+
+        - name: sqlserver-cqrs_USER
+          valueFrom:
+            secretKeyRef:
+              name: sqlserver-cqrs
+              key: USER
+        - name: sqlserver-cqrs_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: sqlserver-cqrs
               key: PASSWORD
 
 

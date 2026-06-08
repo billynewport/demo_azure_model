@@ -62,7 +62,7 @@ KUB_NAME_SPACE: str = "ds-scale"
 AIRFLOW_HOST: str = AZURE_AIRFLOW_POSTGRES_HOST
 AIRFLOW_PORT: int = AZURE_AIRFLOW_POSTGRES_PORT
 AIRFLOW_SERVICE_ACCOUNT: str = "airflow-worker"
-DATASURFACE_VERSION: str = "1.4.38"
+DATASURFACE_VERSION: str = "1.4.39"
 CRG_NAME: str = "AzureHyperscaleCQRS"
 CQRS_CONTAINER_NAME: str = "AzureHyperscale_CQRS_DB"
 CQRS_MAX_WORKERS: int = 8
@@ -169,7 +169,7 @@ def createDemoPSP() -> YellowPlatformServiceProvider:
     )
 
     return YellowPlatformServiceProvider(
-        "Demo_PSP",
+        "SCD4_PSP",
         {_location()},
         PlainTextDocumentation("Azure concurrent-ingestion scale PSP"),
         gitCredential=Credential("git", CredentialType.API_TOKEN),
@@ -192,9 +192,9 @@ def createDemoPSP() -> YellowPlatformServiceProvider:
         ],
         dataPlatforms=[
             YellowDataPlatform(
-                "SCD2",
-                doc=PlainTextDocumentation("SCD2 Yellow DataPlatform"),
-                milestoneStrategy=DataMilestoningStrategy.SCD2,
+                "SCD4",
+                doc=PlainTextDocumentation("SCD4 Yellow DataPlatform"),
+                milestoneStrategy=DataMilestoningStrategy.SCD4,
                 stagingBatchesToKeep=5,
             )
         ],

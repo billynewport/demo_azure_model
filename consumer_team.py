@@ -37,11 +37,11 @@ def createConsumerTeam(gz: GovernanceZone) -> None:
             DataPlatformManagedDataContainer("Azure scale consumer container"),
             PlainTextDocumentation("Workspace consuming all generated Azure SQL CDC datastores"),
             DatasetGroup(
-                "SCD2_DSG",
+                "SCD4_DSG",
                 sinks=dsg_sinks,
                 platform_chooser=WorkspacePlatformConfig(
                     hist=ConsumerRetentionRequirements(
-                        r=DataMilestoningStrategy.SCD2,
+                        r=DataMilestoningStrategy.SCD4,
                         latency=DataLatency.MINUTES,
                         regulator=None,
                     )
