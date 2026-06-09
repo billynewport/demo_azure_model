@@ -194,7 +194,7 @@ def createDemoPSP() -> YellowPlatformServiceProvider:
                 name=CRG_NAME,
                 dataContainers={cqrs_datacontainer},
                 workspaceNames={CONSUMER_WORKSPACE_NAME},
-                trigger=CronTrigger("Every 10 minutes", "*/10 * * * *"),
+                trigger=CronTrigger("Every minute", "* * * * *"),
                 credential=Credential("sqlserver-cqrs", CredentialType.USER_PASSWORD),
                 bulkObjectStorages={CQRS_CONTAINER_NAME: _azure_bulk_binding()},
             )
