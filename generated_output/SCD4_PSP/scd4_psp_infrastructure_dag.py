@@ -609,7 +609,7 @@ merge_task = KubernetesPodOperator(
     task_id='infrastructure_merge_task',
     name='scd4-psp-infra-merge',
     namespace='ds-scale',
-    image='registry.gitlab.com/datasurface-inc/datasurface/datasurface:v1.4.46',
+    image='registry.gitlab.com/datasurface-inc/datasurface/datasurface:v1.4.47',
     cmds=['/bin/bash'],
     arguments=[
         '-c',
