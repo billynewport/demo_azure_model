@@ -451,7 +451,7 @@ def build_otlp_env_vars(config: Dict, default_port: int = 4318) -> List[k8s.V1En
     DaemonSet-based telemetry agents (like Datadog) running on the same node.
     
     Args:
-        config: Configuration dict that may contain 'otlp_enabled', 'otlp_port', 'otlp_protocol'
+        config: Configuration dict that may contain 'otlp_enabled', 'otlp_port', 'otlp_protocol', 'otlp_profile'
         default_port: Default OTLP port if not specified (default: 4318)
         
     Returns:
@@ -476,7 +476,12 @@ def build_otlp_env_vars(config: Dict, default_port: int = 4318) -> List[k8s.V1En
     # Add protocol if specified
     if config.get('otlp_protocol'):
         env_vars.append(k8s.V1EnvVar(name='OTEL_EXPORTER_OTLP_PROTOCOL', value=config['otlp_protocol']))
-    
+
+    # Profile is model-sourced; the SDK reads it to decide resource-attribute inclusion.
+    env_vars.append(
+        k8s.V1EnvVar(name='DATASURFACE_OTLP_PROFILE', value=config.get('otlp_profile', 'prometheus'))
+    )
+
     return env_vars
 
 # Strongly-typed configs for better readability and tooling
@@ -508,6 +513,7 @@ class PlatformConfig(TypedDict):
     otlp_enabled: NotRequired[bool]
     otlp_port: NotRequired[int]
     otlp_protocol: NotRequired[str]
+    otlp_profile: NotRequired[str]
 
 
 class StreamConfig(TypedDict):
@@ -594,6 +600,7 @@ model_merge_env_vars.extend(build_otlp_env_vars({
     'otlp_enabled': True,
     'otlp_port': 4318,
     'otlp_protocol': 'http/protobuf',
+    'otlp_profile': 'prometheus',
 }))
 
 
@@ -602,7 +609,7 @@ merge_task = KubernetesPodOperator(
     task_id='infrastructure_merge_task',
     name='scd4-psp-infra-merge',
     namespace='ds-scale',
-    image='registry.gitlab.com/datasurface-inc/datasurface/datasurface:v1.4.43',
+    image='registry.gitlab.com/datasurface-inc/datasurface/datasurface:v1.4.45',
     cmds=['/bin/bash'],
     arguments=[
         '-c',
@@ -1049,11 +1056,32 @@ def create_database_connection(driver: str, user: str, password: str, host: str,
     return create_engine(db_url)
 
 
-def fetch_rows(engine, sql: str):
-    """Read rows using a simple text SQL statement within a transaction."""
-    with engine.begin() as connection:
-        result = connection.execute(text(sql))
-        return list(result.fetchall())
+def fetch_rows(engine, sql: str, attempts: int = 3, backoff_seconds: float = 2.0):
+    """Read rows using a simple text SQL statement within a transaction.
+
+    Retries on transient failures (e.g. login/connect timeout when the merge DB gateway is busy
+    under high ingestion concurrency). Without this, a single read timeout surfaces as an empty
+    config set, which makes the factory remove every dynamic DAG (drop to 1) until the next run
+    reconnects. Re-raises after exhausting attempts so callers preserve the existing DAGs rather
+    than treating a failed read as 'no active configs'.
+    """
+    import time as _time
+    if attempts < 1:
+        # Guard the degenerate case: with attempts < 1 the loop never runs and `raise last_exc`
+        # would `raise None` -> TypeError, masking the real misconfiguration.
+        raise ValueError(f"fetch_rows requires attempts >= 1, got {attempts}")
+    last_exc = None
+    for attempt in range(1, attempts + 1):
+        try:
+            with engine.begin() as connection:
+                result = connection.execute(text(sql))
+                return list(result.fetchall())
+        except Exception as e:
+            last_exc = e
+            _logger.warning(f"fetch_rows attempt {attempt}/{attempts} failed: {e}")
+            if attempt < attempts:
+                _time.sleep(backoff_seconds * attempt)
+    raise last_exc
 
 
 def map_rows_to_dags(rows, row_to_id_and_dag):
@@ -1783,8 +1811,11 @@ def load_platform_configurations(config: PlatformConfig):
         engine = build_merge_engine_from_env(config)
         if engine is None:
             expected_user, expected_pwd = get_merge_env_names(config)
-            print(f"Missing Merge SQL credentials in environment variables: {expected_user}, {expected_pwd}")
-            return {}
+            # Do NOT return {} here: an empty desired set makes sync_dag_lifecycle remove every
+            # dynamic DAG (drop to 1). Raise instead so the enclosing handler re-raises and the
+            # sync is skipped, preserving existing DAGs until creds reappear — same contract as a
+            # transient read failure. Only a successful read of 0 active rows legitimately yields {}.
+            raise RuntimeError(f"Missing Merge SQL credentials in environment variables: {expected_user}, {expected_pwd}")
 
         try:
             # Read from the platform-specific airflow_dsg table
@@ -1812,8 +1843,13 @@ def load_platform_configurations(config: PlatformConfig):
         generated_dags.update(desired)
 
     except Exception as e:
+        # Do NOT collapse to an empty config on failure: an empty result makes the factory remove
+        # every dynamic DAG (drop to 1). Re-raise so the sync is skipped and existing DAGs are
+        # preserved until the next run reconnects. A genuine empty config (read OK, 0 active rows)
+        # returns {} via the normal path below and is intentional.
         print(f"Error loading platform configurations: {e}")
-        return {}
+        _logger.error(f"Error loading platform configurations: {e}")
+        raise
 
     return generated_dags
 
@@ -1920,7 +1956,12 @@ def create_platform_factory_dag(config: PlatformConfig) -> DAG:
         for dag_id, dag_object in initial_dags.items():
             globals()[dag_id] = dag_object
     except Exception as e:
+        # Re-raise so the DAG-file parse FAILS on a transient read error. Airflow then retains the
+        # previously-parsed DAGs (full set) rather than registering a successful-but-empty parse
+        # that drops everything to just the factory DAG. load_* only raises on real read failures.
         print(f"Warning: Failed to load initial dynamic DAGs during discovery: {e}")
+        _logger.error(f"Failed to load initial dynamic DAGs during discovery: {e}")
+        raise
 
     return factory_dag
 
@@ -2291,8 +2332,11 @@ def load_datatransformer_configurations(config: PlatformConfig):
         engine = build_merge_engine_from_env(config)
         if engine is None:
             expected_user, expected_pwd = get_merge_env_names(config)
-            print(f"Missing Merge SQL credentials in environment variables: {expected_user}, {expected_pwd}")
-            return {}
+            # Do NOT return {} here: an empty desired set makes sync_dag_lifecycle remove every
+            # dynamic DAG (drop to 1). Raise instead so the enclosing handler re-raises and the
+            # sync is skipped, preserving existing DAGs until creds reappear — same contract as a
+            # transient read failure. Only a successful read of 0 active rows legitimately yields {}.
+            raise RuntimeError(f"Missing Merge SQL credentials in environment variables: {expected_user}, {expected_pwd}")
 
         try:
             # Read from the platform-specific airflow_datatransformer table
@@ -2334,8 +2378,11 @@ def load_datatransformer_configurations(config: PlatformConfig):
         return generated_dags
 
     except Exception as e:
+        # Re-raise (don't collapse to {}) so a transient read failure preserves existing DAGs
+        # instead of removing them. See fetch_rows / load_platform_configurations.
         print(f"Error loading DataTransformer configurations: {e}")
-        return {}
+        _logger.error(f"Error loading DataTransformer configurations: {e}")
+        raise
 
 def sync_datatransformer_dags(config: PlatformConfig, **context):
     """Synchronize dynamic DataTransformer DAGs with database configuration - identical to original template"""
@@ -2435,7 +2482,10 @@ def create_datatransformer_factory_dag(config: PlatformConfig) -> DAG:
         for dag_id, dag_object in initial_dags.items():
             globals()[dag_id] = dag_object
     except Exception as e:
+        # Re-raise so the parse fails and Airflow retains the prior DAGs (see ingestion discovery).
         print(f"Warning: Failed to load initial DataTransformer DAGs during discovery: {e}")
+        _logger.error(f"Failed to load initial DataTransformer DAGs during discovery: {e}")
+        raise
 
     return factory_dag
 
@@ -2692,8 +2742,11 @@ def load_cqrs_configurations() -> dict:
         )
         if engine is None:
             expected_user, expected_pwd = get_merge_env_names_template('sqlserver-demo-merge')
-            print(f"Missing Merge SQL credentials in environment variables: {expected_user}, {expected_pwd}")
-            return {}
+            # Do NOT return {} here: an empty desired set makes sync_dag_lifecycle remove every
+            # dynamic DAG (drop to 1). Raise instead so the enclosing handler re-raises and the
+            # sync is skipped, preserving existing DAGs until creds reappear — same contract as a
+            # transient read failure. Only a successful read of 0 active rows legitimately yields {}.
+            raise RuntimeError(f"Missing Merge SQL credentials in environment variables: {expected_user}, {expected_pwd}")
         
         try:
             # Read from the PSP-specific CQRS table using template parameter
@@ -2721,8 +2774,11 @@ def load_cqrs_configurations() -> dict:
         generated_dags.update(desired)
         
     except Exception as e:
+        # Re-raise (don't collapse to {}) so a transient read failure preserves existing DAGs
+        # instead of removing them. See fetch_rows / load_platform_configurations.
         print(f"Error loading CQRS configurations: {e}")
-        return {}
+        _logger.error(f"Error loading CQRS configurations: {e}")
+        raise
     
     return generated_dags
 
@@ -2747,8 +2803,11 @@ def load_dc_reconcile_configurations() -> dict:
         )
         if engine is None:
             expected_user, expected_pwd = get_merge_env_names_template('sqlserver-demo-merge')
-            print(f"Missing Merge SQL credentials in environment variables: {expected_user}, {expected_pwd}")
-            return {}
+            # Do NOT return {} here: an empty desired set makes sync_dag_lifecycle remove every
+            # dynamic DAG (drop to 1). Raise instead so the enclosing handler re-raises and the
+            # sync is skipped, preserving existing DAGs until creds reappear — same contract as a
+            # transient read failure. Only a successful read of 0 active rows legitimately yields {}.
+            raise RuntimeError(f"Missing Merge SQL credentials in environment variables: {expected_user}, {expected_pwd}")
 
         try:
             # Read from the PSP-specific DC reconcile table
@@ -2776,8 +2835,11 @@ def load_dc_reconcile_configurations() -> dict:
         generated_dags.update(desired)
 
     except Exception as e:
+        # Re-raise (don't collapse to {}) so a transient read failure preserves existing DAGs
+        # instead of removing them. See fetch_rows / load_platform_configurations.
         print(f"Error loading DC reconcile configurations: {e}")
-        return {}
+        _logger.error(f"Error loading DC reconcile configurations: {e}")
+        raise
 
     return generated_dags
 
@@ -2979,7 +3041,12 @@ if _is_discovery_mode:
         initial_factory_dags = create_factory_dags_from_database(silent=False)
         print(f"🚀 Factory & CQRS DAG creation during discovery: {initial_factory_dags}")
     except Exception as e:
+        # Re-raise so the DAG-file parse FAILS on a transient merge-DB read error. Airflow retains
+        # the previously-parsed DAGs rather than dropping to just the static factory DAG ("drop to 1").
+        # The fetch_rows retry rides out brief blips; this preserves DAGs if the read ultimately fails.
         print(f"Warning: Failed to load initial Factory & CQRS DAGs during discovery: {e}")
+        _logger.error(f"Failed to load initial Factory & CQRS DAGs during discovery: {e}")
+        raise
 else:
     # Task execution mode: SDK task runner is importing the file to run a specific task
     # OPTIMIZATION: Only create the single DAG needed instead of all dynamic DAGs
